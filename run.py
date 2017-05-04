@@ -151,7 +151,17 @@ def is_file_wanted(filename):
             return True
     return False
 
-def main(input_dir, output_dir):
+def main():
+    input_dir = None
+    output_dir = None
+    if len(sys.argv) > 1:
+        input_dir = str(sys.argv[1])
+    if len(sys.argv) > 2:
+        output_dir = str(sys.argv[2])
+    if input_dir is None:
+        input_dir = str(os.environ.get('INPUT', '/input'))
+    if output_dir is None:
+        output_dir = str(os.environ.get('OUTPUT', '/output'))
     interval = float(os.environ.get('INTERVAL', 0))
     print('from %s to %s interval %f' % (input_dir, output_dir, interval))
     should_loop = True
@@ -175,4 +185,4 @@ def main(input_dir, output_dir):
             time.sleep(interval)
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main()
