@@ -13,6 +13,7 @@ from ffmpy import FFmpeg
 import time
 
 wanted_exts = ['.mp4', '.mkv']
+tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
 
 
 def calculate_checksum(filename):
@@ -162,8 +163,10 @@ def main(input_dir, output_dir):
                     subs = download_subtitle(filename)
                     if len(subs) > 0:
                         basename = os.path.splitext(os.path.basename(filename))[0]
-                        outname = os.path.join(output_dir, "%s.chi.mkv" % basename)
-                        combine_file(filename, subs, outname)
+                        outfilename = "%s.chi.mkv" % basename
+                        tmpname = os.path.join(tmp_dir, outfilename)
+                        combine_file(filename, subs, tmpname)
+                        shutil.move(tmpname, os.path.join(output_dir, outfilename))
                         clean_origin_files(filename, subs)
         clean_empty_folders(input_dir)
         should_loop = (interval > 0)
