@@ -25,4 +25,4 @@ ENV INTERVAL=3600
 VOLUME ['/input']
 VOLUME ['/output']
 
-CMD ["python2", "./run.py", ${INPUT}, ${OUTPUT}]
+CMD ["python", "run.py", "$INPUT", "$OUTPUT"]
