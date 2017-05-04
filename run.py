@@ -136,7 +136,6 @@ def clean_origin_files(filename, subs):
 def clean_empty_folders(dir):
     for root, subdirs, files in os.walk(dir, topdown=False):
         for name in files:
-            print(name)
             if not is_file_wanted(name):
                 os.remove(os.path.join(root, name))
             if root != dir:
