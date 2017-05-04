@@ -153,6 +153,7 @@ def is_file_wanted(filename):
 
 def main(input_dir, output_dir):
     interval = float(os.environ.get('INTERVAL', 0))
+    print('from %s to %s interval %f' % (input_dir, output_dir, interval))
     should_loop = True
     while should_loop:
         for root, dirs, files in os.walk(input_dir):
