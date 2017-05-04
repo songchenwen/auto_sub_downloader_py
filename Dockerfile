@@ -1,6 +1,6 @@
 FROM python:2-onbuild
 
-MAINTAINER me@songchenwen.com
+LABEL maintainer me@songchenwen.com
 
 RUN sed -i "s/jessie main/jessie main contrib non-free/" /etc/apt/sources.list
 RUN echo "deb http://http.debian.net/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
