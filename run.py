@@ -13,6 +13,7 @@ from ffmpy import FFmpeg
 import time
 
 wanted_exts = ['.mp4', '.mkv']
+ignore_filenames = ['rarbg.mp4']
 tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
 
 
@@ -143,6 +144,9 @@ def clean_empty_folders(dir):
                     os.rmdir(root)
 
 def is_file_wanted(filename):
+    basename = os.path.basename(filename)
+    if str(basename).lower() in ignore_filenames:
+        return False
     parts = os.path.splitext(filename)
     if len(parts) > 0:
         ext = parts[1]
