@@ -113,7 +113,7 @@ def combine_file(filename, subs, output):
         ext = os.path.splitext(sub)[1]
         out_params.append("-map %d" % (i + 1))
         out_params.append("-metadata:s:s:%d language=chi" % i)
-        out_params.append("-metadata:s:s:%d title=chi%s" % (i, ext))
+        out_params.append("-metadata:s:s:%d title=chi.%d%s" % (i, i, ext))
     out_params.extend(['-map 0:s?', '-c copy'])
     out_params = " ".join(out_params)
 
@@ -125,10 +125,12 @@ def combine_file(filename, subs, output):
         )
     print(ff.cmd)
     try:
-        ff.run()
+        devnull = open(os.devnull, 'w')
+        ff.run(stderr=devnull)
+        devnull.close()
         return output
     except Exception as e:
-        print(e)
+        print(e.message)
         return None
 
 def clean_origin_files(filename, subs):
