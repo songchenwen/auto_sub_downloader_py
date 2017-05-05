@@ -126,8 +126,10 @@ def combine_file(filename, subs, output):
     print(ff.cmd)
     try:
         ff.run()
+        return output
     except Exception as e:
         print(e)
+        return None
 
 def clean_origin_files(filename, subs):
     os.remove(filename)
@@ -178,10 +180,10 @@ def main():
                     if len(subs) > 0:
                         basename = os.path.splitext(os.path.basename(filename))[0]
                         outfilename = "%s.chi.mkv" % basename
-                        tmpname = os.path.join(tmp_dir, outfilename)
-                        combine_file(filename, subs, tmpname)
-                        shutil.move(tmpname, os.path.join(output_dir, outfilename))
-                        clean_origin_files(filename, subs)
+                        tmpname = combine_file(filename, subs, os.path.join(tmp_dir, outfilename))
+                        if tmpname is not None:
+                            shutil.move(tmpname, os.path.join(output_dir, outfilename))
+                            clean_origin_files(filename, subs)
         clean_empty_folders(input_dir)
         should_loop = (interval > 0)
         if should_loop:
