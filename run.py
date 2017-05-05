@@ -187,8 +187,10 @@ def main():
                             shutil.move(tmpname, os.path.join(output_dir, outfilename))
                             clean_origin_files(filename, subs)
         clean_empty_folders(input_dir)
+        print('clean folder %s' % input_dir)
         should_loop = (interval > 0)
         if should_loop:
+            print('sleep %fs' % interval)
             time.sleep(interval)
 
 if __name__ == '__main__':
