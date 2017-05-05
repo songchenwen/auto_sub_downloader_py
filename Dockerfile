@@ -15,8 +15,6 @@ ENV LC_ALL C.UTF-8
 
 RUN ffmpeg -codecs
 
-RUN apt-get install -y opencc libopencc-dev 
-
 ENV TMP_DIR=/tmp/sub_downloader
 RUN mkdir -p ${TMP_DIR}
 

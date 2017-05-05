@@ -14,12 +14,10 @@ from requests.packages.urllib3 import disable_warnings
 from collections import OrderedDict
 from ffmpy import FFmpeg
 import asstosrt
-import opencc
 import time
 
 wanted_exts = ['.mp4', '.mkv']
 ignore_filenames = ['rarbg.mp4']
-opencc_config = 'tw2sp.json'
 tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
 
 
@@ -103,7 +101,7 @@ def download_subtitle(filename):
                     if str(ext).lower() == 'srt':
                         srt_count = srt_count + 1
                     fobj = open(_filename, 'w')
-                    fobj.write(opencc.convert(_response.text, config=opencc_config).encode("UTF8"))
+                    fobj.write(_response.text.encode("UTF8"))
                     fobj.close()
 
     if len(subtitles) > 0:
