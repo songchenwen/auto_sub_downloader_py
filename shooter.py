@@ -32,11 +32,12 @@ def calculate_checksum(filename):
 
 def get_subtitleinfo(filename):
     """do api request, parse error, return response."""
+    filehash = calculate_checksum(filename)
     response = requests.post(
         "https://www.shooter.cn/api/subapi.php",
         verify=False,
         params= {
-            'filehash': calculate_checksum(filename),
+            'filehash': filehash,
             'pathinfo': os.path.realpath(filename),
             'format': 'json',
             'lang': "chi",
@@ -45,6 +46,7 @@ def get_subtitleinfo(filename):
     if response.text == u'\xff':
         sys.stderr.write("Subtitle not found.\n")
         return None
+    print('filehash %s' % filehash)
     return response
 
 def check_contain_chinese(check_str):
