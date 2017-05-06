@@ -4,6 +4,7 @@ import requests
 from requests.packages.urllib3 import disable_warnings
 from log_utils import normalize_log_filename
 from subtitle_utils import convert_ass_to_srt
+import sys
 from args import need_srt
 
 def calculate_checksum(filename):
