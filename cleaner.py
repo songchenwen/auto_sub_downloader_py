@@ -1,5 +1,5 @@
 import os
-
+import shutil
 
 wanted_exts = ['.mp4', '.mkv']
 ignore_filenames = ['rarbg.mp4']
@@ -33,3 +33,11 @@ def is_file_wanted(filename):
         if str(ext).lower() in wanted_exts:
             return True
     return False
+
+
+def clear_folder(folder):
+    for root, dirs, files in os.walk(folder):
+        for f in files:
+            os.unlink(os.path.join(root, f))
+        for d in dirs:
+            shutil.rmtree(os.path.join(root, d))

@@ -9,7 +9,7 @@ import os
 import shutil
 import time
 
-from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders
+from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, clear_folder
 from shooter import download_subtitle
 from ffmpeg_utils import combine_file
 from args import input_dir, output_dir, interval, need_srt, need_aac
@@ -20,6 +20,7 @@ tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
 def main():
     should_loop = True
     while should_loop:
+        clear_folder(tmp_dir)
         for root, dirs, files in os.walk(input_dir):
             for name in files:
                 filename = os.path.join(root, name)
