@@ -75,7 +75,7 @@ def convert_audio_to_aac(audio_streams, inputs_dict, out_params):
         index = s['index']
         tags = s.get('tags', {})
         out_params.append('-map 0:%d' % index)
-        out_params.append('-codec:a:%d %s' % (i + len(audio_streams), aac_codec))
+        out_params.append('-codec:a:%d %s -ac 2' % (i + len(audio_streams), aac_codec))
         for k, v in tags.iteritems():
             out_params.append('-metadata:s:a:%d %s=%s' % (i + len(audio_streams), k, v))
 
