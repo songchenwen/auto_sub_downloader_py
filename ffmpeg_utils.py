@@ -66,19 +66,22 @@ def convert_audio_to_aac(audio_streams, inputs_dict, out_params):
     if len(source_streams) == 0:
         return
     print('convert audio from %s to aac' % ', '.join([s['codec_name'] for s in source_streams]))
+
     out_params.remove('-c:a copy')
-    for i in range(0, len(audio_streams)):
-        out_params.append('-codec:a:%d copy' % i)
+    out_params.remove('-map 0:a')
 
     for i in range(0, len(source_streams)):
         s = source_streams[i]
         index = s['index']
         tags = s.get('tags', {})
         out_params.append('-map 0:%d' % index)
-        out_params.append('-codec:a:%d %s -ac 2' % (i + len(audio_streams), aac_codec))
+        out_params.append('-codec:a:%d %s -ac 2' % (i, aac_codec))
         for k, v in tags.iteritems():
-            out_params.append('-metadata:s:a:%d %s=%s' % (i + len(audio_streams), k, v))
-
+            out_params.append('-metadata:s:a:%d %s=%s' % (i, k, v))
+    
+    out_params.append('-map 0:a')
+    for i in range(0, len(audio_streams)):
+        out_params.append('-codec:a:%d copy' % (i + len(source_streams)))
 
 def select_source_audio_streams(audio_streams):
     languages = []
