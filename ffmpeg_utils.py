@@ -17,7 +17,6 @@ def combine_file(filename, subs, output):
     if need_aac:
         audio_streams = get_audio_steams(filename)
         if not has_aac_audio(audio_streams):
-            print("convert audio to aac for %s" % normalize_log_filename(filename))
             convert_audio_to_aac(audio_streams, inputs_dict, out_params)
 
     for i in range(0, len(subs)):
@@ -66,6 +65,7 @@ def convert_audio_to_aac(audio_streams, inputs_dict, out_params):
     source_streams = select_source_audio_streams(audio_streams)
     if len(source_streams) == 0:
         return
+    print('convert audio from %s to aac' % ', '.join([s['codec_name'] for s in source_streams]))
     out_params.remove('-c:a copy')
     for i in range(0, len(audio_streams)):
         out_params.append('-codec:a:%d copy' % i)
