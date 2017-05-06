@@ -12,23 +12,12 @@ import time
 from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders
 from shooter import download_subtitle
 from ffmpeg_utils import combine_file
+from args import input_dir, output_dir, interval, need_srt, need_aac
 
 
 tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
 
 def main():
-    input_dir = None
-    output_dir = None
-    if len(sys.argv) > 1:
-        input_dir = str(sys.argv[1])
-    if len(sys.argv) > 2:
-        output_dir = str(sys.argv[2])
-    if input_dir is None:
-        input_dir = str(os.environ.get('INPUT', '/input'))
-    if output_dir is None:
-        output_dir = str(os.environ.get('OUTPUT', '/output'))
-    interval = float(os.environ.get('INTERVAL', 0))
-    print('from %s to %s interval %f' % (input_dir, output_dir, interval))
     should_loop = True
     while should_loop:
         for root, dirs, files in os.walk(input_dir):

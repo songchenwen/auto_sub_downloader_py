@@ -21,6 +21,8 @@ RUN mkdir -p ${TMP_DIR}
 ENV INPUT=/input
 ENV OUTPUT=/output
 ENV INTERVAL=3600
+ENV NEED_SRT=True
+ENV NEED_AAC=True
 
 VOLUME ['/input']
 VOLUME ['/output']

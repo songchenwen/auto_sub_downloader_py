@@ -4,6 +4,7 @@ import requests
 from requests.packages.urllib3 import disable_warnings
 from log_utils import normalize_log_filename
 from subtitle_utils import convert_ass_to_srt
+from args import need_srt
 
 def calculate_checksum(filename):
     """
@@ -89,7 +90,7 @@ def download_subtitle(filename):
                     fobj.close()
 
     if len(subtitles) > 0:
-        if srt_count == 0:
+        if srt_count == 0 and need_srt:
             srt_filename = convert_ass_to_srt(subtitles[0])
             if srt_filename is not None:
                 subtitles.insert(0, srt_filename)
