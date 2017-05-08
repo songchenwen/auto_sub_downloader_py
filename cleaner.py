@@ -1,15 +1,20 @@
 import os
 import shutil
+from args import debug
 
 wanted_exts = ['.mp4', '.mkv']
 ignore_filenames = ['rarbg.mp4']
 
 def clean_origin_files(filename, subs):
+    if debug:
+        return
     os.remove(filename)
     for sub in subs:
         os.remove(sub)
 
 def clean_empty_folders(dir):
+    if debug:
+        return
     for root, subdirs, files in os.walk(dir, topdown=False):
         root_deleted = False
         for name in files:

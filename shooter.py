@@ -3,7 +3,7 @@ import os
 import requests
 from requests.packages.urllib3 import disable_warnings
 from log_utils import normalize_log_filename
-from subtitle_utils import convert_ass_to_srt, check_subtitle_file
+from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_ass_file
 import sys
 from args import need_srt
 
@@ -77,6 +77,7 @@ def download_subtitle(filename):
             _response = requests.get(url, verify=False)
 
             if _response.ok and _response.text not in subtitle_contents:
+                subtitle_contents.add(_response.text)
                 if check_contain_chinese(_response.text):
                     if len(subtitles) == 0:
                         _basename = "%s.chi" % (basename)
@@ -87,10 +88,12 @@ def download_subtitle(filename):
                     fobj = open(_filename, 'w')
                     fobj.write(_response.text.encode("UTF8"))
                     fobj.close()
-                    if check_subtitle_file(_filename):
+                    checked = check_subtitle_file(_filename)
+                    if not checked:
+                        checked = try_to_fix_ass_file(_filename)
+                    if checked:
                         if str(ext).lower() == 'srt':
                             srt_count = srt_count + 1
-                        subtitle_contents.add(_response.text)
                         subtitles.append(_filename)
                     else:
                         print('subtitle check failed %s' % normalize_log_filename(_filename))

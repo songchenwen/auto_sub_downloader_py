@@ -15,6 +15,8 @@ interval = float(os.environ.get('INTERVAL', 0))
 need_srt = (str(os.environ.get('NEED_SRT', 'true')).lower() == 'true')
 need_aac = (str(os.environ.get('NEED_AAC', 'true')).lower() == 'true')
 
+debug = False
+
 
 print('from %s to %s interval %f\nneed srt %s, need aac %s' % (input_dir, output_dir, interval,
     need_srt, need_aac))

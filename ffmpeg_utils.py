@@ -1,14 +1,14 @@
 import os
 from collections import OrderedDict
 from ffmpy import FFmpeg
-from args import need_aac
+from args import need_aac, debug
 from log_utils import normalize_log_filename
 import subprocess
 import shlex
 from pipes import quote
 import json
 
-debug = False
+
 aac_codec = 'aac'
 
 def combine_file(filename, subs, output):
