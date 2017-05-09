@@ -3,7 +3,7 @@ import os
 import requests
 from requests.packages.urllib3 import disable_warnings
 from log_utils import normalize_log_filename
-from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_ass_file
+from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_subtitle_file
 import sys
 from args import need_srt
 
@@ -90,7 +90,7 @@ def download_subtitle(filename):
                     fobj.close()
                     checked = check_subtitle_file(_filename)
                     if not checked:
-                        checked = try_to_fix_ass_file(_filename)
+                        checked = try_to_fix_subtitle_file(_filename)
                     if checked:
                         if str(ext).lower() == 'srt':
                             srt_count = srt_count + 1
