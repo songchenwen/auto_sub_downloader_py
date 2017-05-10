@@ -3,7 +3,7 @@ import shutil
 from args import debug
 
 wanted_exts = ['.mp4', '.mkv']
-ignore_filenames = ['rarbg.mp4']
+ignore_filenames = ['rarbg.mp4','placeholder.mp4']
 
 def clean_origin_files(filename, subs):
     if debug:
