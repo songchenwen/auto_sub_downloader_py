@@ -18,7 +18,7 @@ def clean_empty_folders(dir):
     for root, subdirs, files in os.walk(dir, topdown=False):
         root_deleted = False
         for name in files:
-            if not is_file_wanted(name):
+            if not is_file_wanted(name) and os.path.basename(name).lower() != 'placeholder.mp4':
                 os.remove(os.path.join(root, name))
             if root != dir:
                 if len(os.listdir(root)) == 0:
