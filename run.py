@@ -9,10 +9,10 @@ import os
 import shutil
 import time
 
-from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, clear_folder
+from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, clear_folder, clean_old_files
 from shooter import download_subtitle
 from ffmpeg_utils import combine_file
-from args import input_dir, output_dir, interval, need_srt, need_aac
+from args import input_dir, output_dir, interval
 
 
 tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
@@ -34,6 +34,7 @@ def main():
                         if tmpname is not None:
                             shutil.move(tmpname, os.path.join(output_dir, outfilename))
                             clean_origin_files(filename, subs)
+        clean_old_files(input_dir)
         clean_empty_folders(input_dir)
         print('clean folder %s' % input_dir)
         should_loop = (interval > 0)

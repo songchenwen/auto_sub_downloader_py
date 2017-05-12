@@ -1,9 +1,12 @@
 import os
 import shutil
-from args import debug
+from args import debug, old_days
+from log_utils import normalize_log_filename
+import datetime
 
 wanted_exts = ['.mp4', '.mkv']
 ignore_filenames = ['rarbg.mp4','placeholder.mp4']
+
 
 def clean_origin_files(filename, subs):
     if debug:
@@ -11,6 +14,7 @@ def clean_origin_files(filename, subs):
     os.remove(filename)
     for sub in subs:
         os.remove(sub)
+
 
 def clean_empty_folders(dir):
     if debug:
@@ -28,6 +32,7 @@ def clean_empty_folders(dir):
             if len(os.listdir(root)) == 0:
                 os.rmdir(root)
 
+
 def is_file_wanted(filename):
     basename = os.path.basename(filename)
     if str(basename).lower() in ignore_filenames:
@@ -38,6 +43,19 @@ def is_file_wanted(filename):
         if str(ext).lower() in wanted_exts:
             return True
     return False
+
+
+def clean_old_files(dir):
+    if old_days <= 0:
+        return
+    for root, subdirs, files in os.walk(dir):
+        for filename in files:
+            if is_file_wanted(filename):
+                filetime = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(root, filename)))
+                if (datetime.datetime.now() - filetime) > datetime.timedelta(days=old_days):
+                    print('too old %s' % normalize_log_filename(filename))
+                    if not debug:
+                        os.remove(os.path.join(root, filename))
 
 
 def clear_folder(folder):

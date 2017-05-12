@@ -14,6 +14,7 @@ if output_dir is None:
 interval = float(os.environ.get('INTERVAL', 0))
 need_srt = (str(os.environ.get('NEED_SRT', 'true')).lower() == 'true')
 need_aac = (str(os.environ.get('NEED_AAC', 'true')).lower() == 'true')
+old_days = (int(os.environ.get('old_days', 0)))
 
 debug = False
 
