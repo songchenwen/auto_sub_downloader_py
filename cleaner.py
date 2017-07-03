@@ -1,6 +1,6 @@
 import os
 import shutil
-from args import debug, old_days
+from args import debug, old_days, sub_available_delay
 from log_utils import normalize_log_filename
 import datetime
 
@@ -56,6 +56,11 @@ def clean_old_files(dir):
                     print('too old %s' % normalize_log_filename(filename))
                     if not debug:
                         os.remove(os.path.join(root, filename))
+                        
+
+def is_sub_available(f):
+    filetime = datetime.datetime.fromtimestamp(os.path.getmtime(f))
+    return (datetime.datetime.now() - filetime) > datetime.timedelta(days=sub_available_delay)
 
 
 def clear_folder(folder):

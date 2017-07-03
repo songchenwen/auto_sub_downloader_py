@@ -9,7 +9,7 @@ import os
 import shutil
 import time
 
-from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, clear_folder, clean_old_files
+from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, clear_folder, clean_old_files, is_sub_available
 from shooter import download_subtitle
 from ffmpeg_utils import combine_file
 from args import input_dir, output_dir, interval
@@ -26,14 +26,15 @@ def main():
                 filename = os.path.join(root, name)
                 parts = os.path.splitext(filename)
                 if is_file_wanted(filename):
-                    subs = download_subtitle(filename)
-                    if len(subs) > 0:
-                        basename = os.path.splitext(os.path.basename(filename))[0]
-                        outfilename = "%s.chi.mkv" % basename
-                        tmpname = combine_file(filename, subs, os.path.join(tmp_dir, outfilename))
-                        if tmpname is not None:
-                            shutil.move(tmpname, os.path.join(output_dir, outfilename))
-                            clean_origin_files(filename, subs)
+                    if is_sub_available(filename):
+                        subs = download_subtitle(filename)
+                        if len(subs) > 0:
+                            basename = os.path.splitext(os.path.basename(filename))[0]
+                            outfilename = "%s.chi.mkv" % basename
+                            tmpname = combine_file(filename, subs, os.path.join(tmp_dir, outfilename))
+                            if tmpname is not None:
+                                shutil.move(tmpname, os.path.join(output_dir, outfilename))
+                                clean_origin_files(filename, subs)
         clean_old_files(input_dir)
         clean_empty_folders(input_dir)
         print('clean folder %s' % input_dir)
