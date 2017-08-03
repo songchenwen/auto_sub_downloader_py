@@ -15,10 +15,11 @@ interval = float(os.environ.get('INTERVAL', 0))
 need_srt = (str(os.environ.get('NEED_SRT', 'true')).lower() == 'true')
 need_aac = (str(os.environ.get('NEED_AAC', 'true')).lower() == 'true')
 old_days = (int(os.environ.get('OLD_DAYS', 0)))
+throttle = int(os.environ.get('THROTTLE', 600))
 sub_available_delay = int(os.environ.get('SUB_AVAILABLE_DELAY', 0))
 
 debug = False
 
 
-print('from %s to %s interval %f\nneed srt %s, need aac %s' % (input_dir, output_dir, interval,
-    need_srt, need_aac))
+print('from %s to %s interval %f\nneed srt %s, need aac %s, throttle %s' % (input_dir, output_dir, interval,
+    need_srt, need_aac, str(throttle)))

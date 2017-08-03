@@ -12,12 +12,11 @@ import time
 from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, clear_folder, clean_old_files, is_sub_available
 from shooter import download_subtitle
 from ffmpeg_utils import combine_file
-from args import input_dir, output_dir, interval
+from args import input_dir, output_dir, interval, throttle
 from subhd.subhd import get_subtitle
 
 
 tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
-throttle = 300
 
 def main():
     should_loop = True
