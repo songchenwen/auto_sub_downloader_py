@@ -31,7 +31,12 @@ class SubHDDownloader(object):
 
         '''
         escaped_keyword = quote(keyword)
-        page = requests.get(self.search_url + escaped_keyword)
+        page = None
+        try:
+            page = requests.get(self.search_url + escaped_keyword)
+        except Exception:
+            return None
+
         soup = BeautifulSoup(page.content)
 
         page_list = soup.find(class_='col-md-9').childGenerator()
@@ -73,14 +78,15 @@ class SubHDDownloader(object):
         payload = {
             'sub_id': int(subtitle_id)
         }
-        res_with_real_addr = requests.post(self.dl_lookup_url, data=payload)
         try:
+            res_with_real_addr = requests.post(self.dl_lookup_url, data=payload)
             res_with_real_addr = res_with_real_addr.json()
             real_addr = res_with_real_addr.get('url')
             if not real_addr:
                 return None, None
         except ValueError:
             print 'No subtitle download'
+            return None, None
 
         sub_datastring = requests.get(real_addr).content
         if len(sub_datastring) < 1024:
