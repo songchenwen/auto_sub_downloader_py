@@ -31,12 +31,11 @@ def get_subtitle(filename, chiconv_type='zht'):
         sys.stderr.write("File %s not found.\n" % filename)
         sys.exit(1)
     name = os.path.basename(filename)
-    dirname = os.path.dirname(filename)
     print('processing %s' % name)
 
     results = DOWNLOADER.search(name)
     if not results:
-        print "No subtitle for %s" % filename
+        print "No subtitle for %s" % name
         return [], None
 
     target = choose_subtitle(results)
