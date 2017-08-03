@@ -4,8 +4,8 @@ LABEL maintainer me@songchenwen.com
 
 RUN sed -i "s/jessie main/jessie main contrib non-free/" /etc/apt/sources.list
 RUN echo "deb http://http.debian.net/debian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -y \
-    ffmpeg
+RUN apt-get update && apt-get install -y ffmpeg
+RUN apt-get update && apt-get install -y unrar
 
 RUN apt-get install -y locales && \
     locale-gen C.UTF-8 && \

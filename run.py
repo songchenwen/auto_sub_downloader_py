@@ -13,9 +13,11 @@ from cleaner import is_file_wanted, clean_origin_files, clean_empty_folders, cle
 from shooter import download_subtitle
 from ffmpeg_utils import combine_file
 from args import input_dir, output_dir, interval
+from subhd.subhd import get_subtitle
 
 
 tmp_dir = str(os.environ.get('TMP_DIR', '/tmp/sub_downloader'))
+throttle = 300
 
 def main():
     should_loop = True
@@ -27,7 +29,8 @@ def main():
                 parts = os.path.splitext(filename)
                 if is_file_wanted(filename):
                     if is_sub_available(filename):
-                        subs = download_subtitle(filename)
+                        subs, org = get_subtitle(filename, chiconv_type='zhs')
+                        # subs = download_subtitle(filename)
                         if len(subs) > 0:
                             basename = os.path.splitext(os.path.basename(filename))[0]
                             outfilename = "%s.chi.mkv" % basename
@@ -35,6 +38,7 @@ def main():
                             if tmpname is not None:
                                 shutil.move(tmpname, os.path.join(output_dir, outfilename))
                                 clean_origin_files(filename, subs)
+                        time.sleep(throttle)
         clean_old_files(input_dir)
         clean_empty_folders(input_dir)
         print('clean folder %s' % input_dir)

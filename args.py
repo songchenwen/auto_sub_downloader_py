@@ -15,7 +15,7 @@ interval = float(os.environ.get('INTERVAL', 0))
 need_srt = (str(os.environ.get('NEED_SRT', 'true')).lower() == 'true')
 need_aac = (str(os.environ.get('NEED_AAC', 'true')).lower() == 'true')
 old_days = (int(os.environ.get('OLD_DAYS', 0)))
-sub_available_delay = int(os.environ.get('SUB_AVAILABLE_DELAY', 2))
+sub_available_delay = int(os.environ.get('SUB_AVAILABLE_DELAY', 0))
 
 debug = False
 
