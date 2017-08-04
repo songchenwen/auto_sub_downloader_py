@@ -26,7 +26,7 @@ DOWNLOADER = SubHDDownloader()
 
 known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组', u'衣柜字幕组']
 required_features = [u'双语', u'ASS']
-name_seperator_re = '\.|\s|-|[|]'
+name_seperator_re = '\.|\s|-|[|]|/'
 
 
 def choose_subtitle(subs, name):
@@ -93,7 +93,7 @@ def get_subtitle(filename, chiconv_type='zht'):
         org = unicode(org)
 
     print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
-                                   target['title'] if target.get('title', None) is not None else 'no title',name))
+                                   target['title'] if target.get('title', None) is not None else 'no title', name))
 
     # Download sub here.
     datatype, sub_data = DOWNLOADER.download(target.get('id'))
