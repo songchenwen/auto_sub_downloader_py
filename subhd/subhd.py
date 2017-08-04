@@ -79,6 +79,9 @@ def get_subtitle(filename, chiconv_type='zht'):
         return [], None
 
     target = choose_subtitle(results, name)
+    if target is None:
+        print "Score low sub for %s" % name
+        return [], None
 
     org = target['org']
 
