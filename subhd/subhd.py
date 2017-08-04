@@ -83,7 +83,7 @@ def get_subtitle(filename, chiconv_type='zht'):
         print "Score low sub for %s" % name
         return [], None
 
-    org = target['org']
+    org = unicode(target['org'])
 
     print('%s %s sub for %s' % (org, ','.join(target['features']), name))
 

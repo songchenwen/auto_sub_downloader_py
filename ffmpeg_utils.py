@@ -1,17 +1,16 @@
+#coding=utf-8
 import os
 from collections import OrderedDict
-from ffmpy import FFmpeg
 from args import need_aac, debug
-from log_utils import normalize_log_filename
 import subprocess
 import shlex
 from pipes import quote
 import json
 
-
 aac_codec = 'aac'
 
-def combine_file(filename, subs, output):
+
+def combine_file(filename, subs, output, subname=None):
     inputs_dict = [(filename, None)]
     out_params = ['-map 0:v', '-map 0:a', '-c:v copy', '-c:s copy', '-c:a copy']
 
@@ -26,25 +25,44 @@ def combine_file(filename, subs, output):
         ext = os.path.splitext(sub)[1]
         out_params.append("-map %d" % (i + 1))
         out_params.append("-metadata:s:s:%d language=chi" % i)
-        out_params.append("-metadata:s:s:%d title=chi.%d%s" % (i, i + 1, ext))
+        if subname is None:
+            out_params.append("-metadata:s:s:%d title=chi.%d%s" % (i, i + 1, ext))
+        else:
+            out_params.append("-metadata:s:s:%d title=chi.%s%s" % (i, subname, ext))
     out_params.append('-map 0:s?')
     out_params = " ".join(out_params)
 
     inputs_dict = OrderedDict(inputs_dict)
 
-    ff = FFmpeg(
-        inputs=inputs_dict,
-        outputs={output: out_params}
-        )
-    print(ff.cmd)
+    cmd = build_command(inputs_dict, {output: out_params})
+
+    print(cmd)
+
     try:
         devnull = open(os.devnull, 'w')
-        ff.run(stderr=devnull if not debug else None)
+        subprocess.call(cmd, stderr=devnull if not debug else None, shell=True)
         devnull.close()
         return output
     except Exception as e:
         print(e)
         return None
+
+
+def build_command(inputs, output):
+    cmds = ["ffmpeg"]
+    for i in inputs:
+        c = "-i " + i
+        if inputs.get(i) is not None:
+            c += (" " + inputs.get(i))
+        cmds.append(c)
+    for o in output:
+        c = ""
+        arg = output.get(o)
+        if arg is not None:
+            c += arg
+        c += (" " + o)
+        cmds.append(c)
+    return " ".join(cmds)
 
 def get_audio_steams(filename):
     cmd = 'ffprobe -show_streams -select_streams a -loglevel quiet -print_format json'

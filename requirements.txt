@@ -1,5 +1,4 @@
 requests==2.9.0
-ffmpy==0.2.2
 asstosrt==0.1.5
 OpenCC==0.2
 beautifulsoup4==4.3.2

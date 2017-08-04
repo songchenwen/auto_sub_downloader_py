@@ -33,7 +33,7 @@ def main():
                         if len(subs) > 0:
                             basename = os.path.splitext(os.path.basename(filename))[0]
                             outfilename = "%s.chi.mkv" % basename
-                            tmpname = combine_file(filename, subs, os.path.join(tmp_dir, outfilename))
+                            tmpname = combine_file(filename, subs, os.path.join(tmp_dir, outfilename), org)
                             if tmpname is not None:
                                 shutil.move(tmpname, os.path.join(output_dir, outfilename))
                                 clean_origin_files(filename, subs)
