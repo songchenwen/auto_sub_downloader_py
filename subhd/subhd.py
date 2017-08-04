@@ -9,6 +9,7 @@ from args import need_srt
 from core import SubHDDownloader
 from compressor import ZIPFileHandler, RARFileHandler
 from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom
+from guessit import guessit
 import re
 
 COMPRESSPR_HANDLER = {
@@ -39,10 +40,13 @@ def choose_subtitle(subs, name):
 
 
 def sub_score(sub, name):
+    guessed = guessit(name)
+    type = guessed.get('type', None)
+    require_org = type == 'episode'
     org = sub.get('org', None)
-    if org is None:
+    if org is None and require_org:
         return 0
-    if org not in known_orgs:
+    if org not in known_orgs and require_org:
         return 0
     features = sub['features']
     for f in required_features:
@@ -60,9 +64,10 @@ def sub_score(sub, name):
         else:
             extra_filename = extra_filename.replace(component, '')
     extra_filename = re.sub(name_seperator_re, '', extra_filename)
-    org_score = float(len(known_orgs) - known_orgs.index(org)) / float(len(known_orgs)) * 20.0
-    feature_score = float(min(len(features), 20.0)) / 20.0 * 40.0
-    filename_extra_score = float(min(len(extra_filename), 100.0)) / 100.0 * 10.0 + 10.0
+    org_score = float((len(known_orgs) + 1 - known_orgs.index(org)) if org in known_orgs else
+                      (1 if org is not None else 0)) / float(len(known_orgs) + 1) * 20.0
+    feature_score = float(min(len(features), 20.0)) / 20.0 * 20.0
+    filename_extra_score = 10.0 - float(min(len(extra_filename), 100.0)) / 100.0 * 10.0
     return org_score + feature_score + filename_extra_score
 
 
@@ -76,16 +81,19 @@ def get_subtitle(filename, chiconv_type='zht'):
     results = DOWNLOADER.search(name)
     if not results:
         print "No subtitle for %s" % name
-        return [], None
+        return [], 'OP_ERROR'
 
     target = choose_subtitle(results, name)
     if target is None:
         print "Score low sub for %s" % name
-        return [], None
+        return [], 'OP_ERROR'
 
-    org = unicode(target['org'])
+    org = target.get('org', None)
+    if org is not None:
+        org = unicode(org)
 
-    print('%s %s sub for %s' % (org, ','.join(target['features']), name))
+    print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
+                                   target['title'] if target.get('title', None) is not None else 'no title',name))
 
     # Download sub here.
     datatype, sub_data = DOWNLOADER.download(target.get('id'))

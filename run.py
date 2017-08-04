@@ -37,7 +37,7 @@ def main():
                             if tmpname is not None:
                                 shutil.move(tmpname, os.path.join(output_dir, outfilename))
                                 clean_origin_files(filename, subs)
-                        if org is not None:
+                        if org != 'OP_ERROR':
                             print('throttle %d' % throttle)
                             time.sleep(throttle)
         clean_old_files(input_dir)
