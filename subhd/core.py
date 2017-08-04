@@ -16,9 +16,6 @@ class SubHDDownloader(object):
         self.search_url = 'http://subhd.com/search/'
         self.subid_re = re.compile(r'^/ar0/(\d+)$')
         self.org_re = re.compile(r'^/zu/(\d+)$')
-        self.info_re = re.compile(ur'\u683c\u5f0f\uff1a(\S+)\s' +
-                                  ur'\u7248\u672c\uff1a(\S+)',
-                                  re.UNICODE)
 
     def search(self, keyword):
         '''Search subtitles candidates.
@@ -50,15 +47,18 @@ class SubHDDownloader(object):
                     if match and j.get('target'):
                         item['id'] = match.group(1)
                         item['title'] = j.getText()
+                        item['filename'] = j.get('title')
                     match = self.org_re.match(j.get('href'))
                     if match:
                         item['org'] = j.getText()
 
-                item_text = i.getText()
-                match = self.info_re.search(item_text)
-                if match:
-                    item['format'], item['version'] = match.groups()
-
+                spans = i.find_all('span')
+                features = []
+                for span in spans:
+                    c = span.get('class')
+                    if 'label' in c:
+                        features.append(span.getText())
+                item['features'] = features
                 if item != {}:
                     items.append(item)
             except AttributeError: # The field might be '\n', ' ' or whatever

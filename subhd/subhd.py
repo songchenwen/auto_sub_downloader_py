@@ -1,11 +1,15 @@
 #!/usr/bin/env python
-import os
+#coding=utf-8
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+import os
 from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_subtitle_file
 from args import need_srt
 from core import SubHDDownloader
 from compressor import ZIPFileHandler, RARFileHandler
 from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom
+import re
 
 COMPRESSPR_HANDLER = {
     'rar': RARFileHandler,
@@ -19,11 +23,47 @@ CHICONV = {
 
 DOWNLOADER = SubHDDownloader()
 
+known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组', u'衣柜字幕组']
+required_features = [u'双语', u'ASS']
+name_seperator_re = '\.|\s|-|[|]'
 
-def choose_subtitle(subs):
+
+def choose_subtitle(subs, name):
+    target = None
     for sub in subs:
-        if sub.get('org', None) is not None:
-            return sub
+        sub['score'] = sub_score(sub, name)
+        if sub['score'] > 0:
+            if target is None or sub['score'] > target['score']:
+                target = sub
+    return target
+
+
+def sub_score(sub, name):
+    org = sub.get('org', None)
+    if org is None:
+        return 0
+    if org not in known_orgs:
+        return 0
+    features = sub['features']
+    for f in required_features:
+        if f not in features:
+            return 0
+    name = os.path.splitext(name)[0]
+    components = re.split(name_seperator_re, name)
+    filename = sub.get('filename', None)
+    if filename is None:
+        return 0
+    extra_filename = filename
+    for component in components:
+        if component not in filename:
+            return 0
+        else:
+            extra_filename = extra_filename.replace(component, '')
+    extra_filename = re.sub(name_seperator_re, '', extra_filename)
+    org_score = float(len(known_orgs) - known_orgs.index(org)) / float(len(known_orgs)) * 20.0
+    feature_score = float(min(len(features), 20.0)) / 20.0 * 40.0
+    filename_extra_score = float(min(len(extra_filename), 100.0)) / 100.0 * 10.0 + 10.0
+    return org_score + feature_score + filename_extra_score
 
 
 def get_subtitle(filename, chiconv_type='zht'):
@@ -38,11 +78,11 @@ def get_subtitle(filename, chiconv_type='zht'):
         print "No subtitle for %s" % name
         return [], None
 
-    target = choose_subtitle(results)
+    target = choose_subtitle(results, name)
 
     org = target['org']
 
-    print('%s sub for %s' % (org, name))
+    print('%s %s sub for %s' % (org, ','.join(target['features']), name))
 
     # Download sub here.
     datatype, sub_data = DOWNLOADER.download(target.get('id'))
