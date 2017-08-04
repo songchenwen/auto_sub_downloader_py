@@ -91,7 +91,7 @@ def get_subtitle(filename, chiconv_type='zht'):
     datatype, sub_data = DOWNLOADER.download(target.get('id'))
     if sub_data is None:
         print('Can not download sub for %s' % name)
-        return [], None
+        return [], org
     file_handler = COMPRESSPR_HANDLER.get(datatype)
     compressor = file_handler(sub_data)
 
@@ -127,7 +127,7 @@ def get_subtitle(filename, chiconv_type='zht'):
     if checked:
         subs.append(out_file)
     else:
-        return [], None
+        return [], org
 
     if str(ext).lower() == "ass" and need_srt:
         srt_filename = convert_ass_to_srt(out_file)
