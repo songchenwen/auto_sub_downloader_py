@@ -1,8 +1,10 @@
+#coding=utf-8
 '''Few sanitizer functions to process subtitle text.
 '''
 import chardet
 from pyTongwen.conv import TongWenConv
 import StringIO
+import re
 import pysrt
 
 __TONGWEN = TongWenConv()
@@ -169,3 +171,24 @@ def reset_index(sub_unicode):
     new_sub_unicode = new_sub.getvalue()
     new_sub.close()
     return new_sub_unicode
+
+
+name_seperator_re = '\.|\s|-|[|]|/'
+
+
+def get_extra_filename(target_name, filename):
+    name = target_name.lower()
+    components = re.split(name_seperator_re, name)
+    filename = filename.lower()
+    extra_filename = filename
+    for component in components:
+        if component not in filename:
+            if component == 'h264':
+                component = 'h.264'
+            elif component == 'h265':
+                component = 'h.265'
+            if component not in filename:
+                return None
+        extra_filename = extra_filename.replace(component, '', 1)
+    extra_filename = re.sub(name_seperator_re, '', extra_filename)
+    return extra_filename

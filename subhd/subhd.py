@@ -8,7 +8,7 @@ from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_s
 from args import need_srt
 from core import SubHDDownloader
 from compressor import ZIPFileHandler, RARFileHandler
-from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom
+from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom, get_extra_filename
 from guessit import guessit
 import re
 
@@ -26,7 +26,6 @@ DOWNLOADER = SubHDDownloader()
 
 known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组', u'衣柜字幕组']
 required_features = [u'双语', u'ASS']
-name_seperator_re = '\.|\s|-|[|]|/'
 
 
 def choose_subtitle(subs, name):
@@ -53,17 +52,12 @@ def sub_score(sub, name):
         if f not in features:
             return 0
     name = os.path.splitext(name)[0]
-    components = re.split(name_seperator_re, name)
     filename = sub.get('filename', None)
     if filename is None:
         return 0
-    extra_filename = filename
-    for component in components:
-        if component not in filename:
-            return 0
-        else:
-            extra_filename = extra_filename.replace(component, '')
-    extra_filename = re.sub(name_seperator_re, '', extra_filename)
+    extra_filename = get_extra_filename(name, filename)
+    if extra_filename is None:
+        return 0
     org_score = float((len(known_orgs) + 1 - known_orgs.index(org)) if org in known_orgs else
                       (1 if org is not None else 0)) / float(len(known_orgs) + 1) * 20.0
     feature_score = float(min(len(features), 20.0)) / 20.0 * 20.0
@@ -104,7 +98,11 @@ def get_subtitle(filename, chiconv_type='zht'):
     compressor = file_handler(sub_data)
 
     subtitle = {}
-    subtitle['name'], subtitle['body'] = compressor.extract_bestguess()
+    subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name)
+    if subtitle['name'] is None:
+        print('no suitable file to uncompress %s' % name)
+        return [], org
+
     subtitle['name'] = './' + subtitle['name'].split('/')[-1]
     subtitle['extension'] = subtitle['name'].split('.')[-1]
 
