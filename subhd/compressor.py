@@ -69,7 +69,6 @@ class BaseCompressedFileHandler(object):
         max_size = max([i['size'] for i in info])
         def score_for_info(i):
             name = str(i['name']).lower()
-            print(name)
             basename = os.path.splitext(name)[0]
             ext = os.path.splitext(name)[1]
             score = 0.0
