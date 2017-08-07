@@ -5,11 +5,12 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
 from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_subtitle_file
-from args import need_srt
+from args import need_srt, throttle
 from core import SubHDDownloader
 from compressor import ZIPFileHandler, RARFileHandler
 from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom, get_extra_filename
 from guessit import guessit
+import time
 import re
 
 COMPRESSPR_HANDLER = {
@@ -24,18 +25,18 @@ CHICONV = {
 
 DOWNLOADER = SubHDDownloader()
 
-known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组', u'衣柜字幕组']
+known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'衣柜字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组']
 required_features = [u'双语', u'ASS']
 
 
 def choose_subtitle(subs, name):
-    target = None
+    results = []
     for sub in subs:
         sub['score'] = sub_score(sub, name)
         if sub['score'] > 0:
-            if target is None or sub['score'] > target['score']:
-                target = sub
-    return target
+            results.append(sub)
+    results.sort(key=lambda s: s['score'], reverse=True)
+    return results
 
 
 def sub_score(sub, name):
@@ -76,68 +77,76 @@ def get_subtitle(filename, chiconv_type='zht'):
     if not results:
         print "No subtitle for %s" % name
         return [], 'OP_ERROR'
+    targets = choose_subtitle(results, name)
 
-    target = choose_subtitle(results, name)
-    if target is None:
+    if len(targets) == 0:
         print "Score low sub for %s" % name
         return [], 'OP_ERROR'
 
-    org = target.get('org', None)
-    if org is not None:
-        org = unicode(org)
+    should_throttle = False
+    for target in targets:
+        if should_throttle:
+            time.sleep(throttle)
 
-    print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
-                                   target['title'] if target.get('title', None) is not None else 'no title', name))
+        org = target.get('org', None)
+        if org is not None:
+            org = unicode(org)
 
-    # Download sub here.
-    datatype, sub_data = DOWNLOADER.download(target.get('id'))
-    if sub_data is None:
-        print('Can not download sub for %s' % name)
-        return [], org
-    file_handler = COMPRESSPR_HANDLER.get(datatype)
-    compressor = file_handler(sub_data)
+        print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
+                                       target['title'] if target.get('title', None) is not None else 'no title', name))
 
-    subtitle = {}
-    subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name)
-    if subtitle['name'] is None:
-        print('no suitable file to uncompress %s' % name)
-        return [], org
+        # Download sub here.
+        datatype, sub_data = DOWNLOADER.download(target.get('id'))
+        if sub_data is None:
+            print('Can not download sub for %s' % name)
+            return [], org
+        file_handler = COMPRESSPR_HANDLER.get(datatype)
+        compressor = file_handler(sub_data)
 
-    subtitle['name'] = './' + subtitle['name'].split('/')[-1]
-    subtitle['extension'] = subtitle['name'].split('.')[-1]
+        subtitle = {}
+        subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name)
+        if subtitle['name'] is None:
+            print('no suitable file to uncompress %s' % name)
+            should_throttle = True
+            continue
 
-    # Chinese conversion
-    subtitle['body'] = to_unicode(subtitle['body']) # Unicode object
-    conv_func = CHICONV.get(chiconv_type)
-    subtitle['body'] = conv_func(subtitle['body'])
+        subtitle['name'] = './' + subtitle['name'].split('/')[-1]
+        subtitle['extension'] = subtitle['name'].split('.')[-1]
 
-    if subtitle['extension'] == 'srt':
-        subtitle['body'] = reset_index(subtitle['body'])
+        # Chinese conversion
+        subtitle['body'] = to_unicode(subtitle['body']) # Unicode object
+        conv_func = CHICONV.get(chiconv_type)
+        subtitle['body'] = conv_func(subtitle['body'])
 
-    subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
-    subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
+        if subtitle['extension'] == 'srt':
+            subtitle['body'] = reset_index(subtitle['body'])
 
-    basename = os.path.splitext(filename)[0]
+        subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
+        subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
 
-    ext = subtitle['extension']
+        basename = os.path.splitext(filename)[0]
 
-    out_file = "%s.chi.%s" % (basename, ext)
-    with open(out_file, 'w') as subfile:
-        subfile.write(subtitle['body'])
+        ext = subtitle['extension']
 
-    subs = []
-    checked = check_subtitle_file(out_file)
-    if not checked:
-        checked = try_to_fix_subtitle_file(out_file)
+        out_file = "%s.chi.%s" % (basename, ext)
+        with open(out_file, 'w') as subfile:
+            subfile.write(subtitle['body'])
 
-    if checked:
-        subs.append(out_file)
-    else:
-        return [], org
+        subs = []
+        checked = check_subtitle_file(out_file)
+        if not checked:
+            checked = try_to_fix_subtitle_file(out_file)
 
-    if str(ext).lower() == "ass" and need_srt:
-        srt_filename = convert_ass_to_srt(out_file)
-        if srt_filename is not None:
-            subs.insert(0, srt_filename)
+        if checked:
+            subs.append(out_file)
+        else:
+            should_throttle = True
+            continue
 
-    return subs, org
+        if str(ext).lower() == "ass" and need_srt:
+            srt_filename = convert_ass_to_srt(out_file)
+            if srt_filename is not None:
+                subs.insert(0, srt_filename)
+
+        return subs, org
+    return [], 'OP_ERROR'
