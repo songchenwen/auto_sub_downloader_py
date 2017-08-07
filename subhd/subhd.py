@@ -73,7 +73,7 @@ def get_subtitle(filename, chiconv_type='zht'):
     name = os.path.basename(filename)
     print('processing %s' % name)
 
-    results = DOWNLOADER.search(name)
+    results = DOWNLOADER.search(os.path.splitext(name)[0])
     if not results:
         print "No subtitle for %s" % name
         return [], 'OP_ERROR'
