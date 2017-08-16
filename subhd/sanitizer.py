@@ -6,6 +6,7 @@ from pyTongwen.conv import TongWenConv
 import StringIO
 import re
 import pysrt
+import os
 
 __TONGWEN = TongWenConv()
 
@@ -181,6 +182,23 @@ def get_extra_filename(target_name, filename):
     components = re.split(name_seperator_re, name)
     filename = filename.lower()
     extra_filename = filename
+
+    def plus_extra_for_resolution(c, f):
+        res_coms = ['2160p', '1080p', '720p', '480p']
+        c = str(c).lower()
+        f = str(f).lower()
+        extra_per_level = 'resex'
+        if c in res_coms:
+            ex = ''
+            expected_index = res_coms.index(c)
+            for i in range(len(res_coms)):
+                com = res_coms[i]
+                if com not in f and i > expected_index:
+                    ex += extra_per_level
+            return ex
+        return None
+
+    plus_extra_name = ""
     for component in components:
         if component not in filename:
             if component == 'h264':
@@ -188,7 +206,28 @@ def get_extra_filename(target_name, filename):
             elif component == 'h265':
                 component = 'h.265'
             if component not in filename:
-                return None
+                p = plus_extra_for_resolution(component, filename)
+                if p is None:
+                    return None
+                plus_extra_name += p
         extra_filename = extra_filename.replace(component, '', 1)
     extra_filename = re.sub(name_seperator_re, '', extra_filename)
-    return extra_filename
+    return extra_filename + plus_extra_name
+
+
+def get_search_names(name):
+    name = os.path.splitext(name)[0]
+    search_names = [name]
+    map_names = {'h264': 'h.264',
+                 'h265': 'h.265',
+                 'h.264': 'h264',
+                 'h.256': 'h265',
+                 '2160p': '',
+                 '1080p': '',
+                 '720p': ''}
+    for ori in map_names.keys():
+        new = map_names.get(ori)
+        if ori in name.lower():
+            search_names.append(name.lower().replace(ori, new))
+    return search_names
+

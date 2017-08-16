@@ -8,7 +8,7 @@ from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_s
 from args import need_srt, throttle
 from core import SubHDDownloader
 from compressor import ZIPFileHandler, RARFileHandler
-from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom, get_extra_filename
+from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom, get_extra_filename, get_search_names
 from guessit import guessit
 import time
 import re
@@ -73,80 +73,84 @@ def get_subtitle(filename, chiconv_type='zht'):
     name = os.path.basename(filename)
     print('processing %s' % name)
 
-    results = DOWNLOADER.search(os.path.splitext(name)[0])
-    if not results:
-        print "No subtitle for %s" % name
-        return [], 'OP_ERROR'
-    targets = choose_subtitle(results, name)
+    for search_name in get_search_names(name):
+        print('searching for %s' % search_name)
+        results = DOWNLOADER.search(search_name)
+        if not results:
+            print "No subtitle for %s" % name
+            continue
+        targets = choose_subtitle(results, name)
 
-    if len(targets) == 0:
-        print "Score low sub for %s" % name
-        return [], 'OP_ERROR'
-
-    should_throttle = False
-    for target in targets:
-        if should_throttle:
-            time.sleep(throttle)
-
-        org = target.get('org', None)
-        if org is not None:
-            org = unicode(org)
-
-        print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
-                                       target['title'] if target.get('title', None) is not None else 'no title', name))
-
-        # Download sub here.
-        datatype, sub_data = DOWNLOADER.download(target.get('id'))
-        if sub_data is None:
-            print('Can not download sub for %s' % name)
-            return [], org
-        file_handler = COMPRESSPR_HANDLER.get(datatype)
-        compressor = file_handler(sub_data)
-
-        subtitle = {}
-        subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name)
-        if subtitle['name'] is None:
-            print('no suitable file to uncompress %s' % name)
-            should_throttle = True
+        if len(targets) == 0:
+            print "Score low sub for %s" % name
             continue
 
-        subtitle['name'] = './' + subtitle['name'].split('/')[-1]
-        subtitle['extension'] = subtitle['name'].split('.')[-1]
+        should_throttle = False
+        for target in targets:
+            if should_throttle:
+                time.sleep(throttle)
 
-        # Chinese conversion
-        subtitle['body'] = to_unicode(subtitle['body']) # Unicode object
-        conv_func = CHICONV.get(chiconv_type)
-        subtitle['body'] = conv_func(subtitle['body'])
+            org = target.get('org', None)
+            if org is not None:
+                org = unicode(org)
 
-        if subtitle['extension'] == 'srt':
-            subtitle['body'] = reset_index(subtitle['body'])
+            print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
+                                           target['title'] if target.get('title', None) is not None else 'no title', name))
 
-        subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
-        subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
+            # Download sub here.
+            datatype, sub_data = DOWNLOADER.download(target.get('id'))
+            if sub_data is None:
+                print('Can not download sub for %s' % name)
+                should_throttle = True
+                continue
+            file_handler = COMPRESSPR_HANDLER.get(datatype)
+            compressor = file_handler(sub_data)
 
-        basename = os.path.splitext(filename)[0]
+            subtitle = {}
+            subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name)
+            if subtitle['name'] is None:
+                print('no suitable file to uncompress %s' % name)
+                should_throttle = True
+                continue
 
-        ext = subtitle['extension']
+            subtitle['name'] = './' + subtitle['name'].split('/')[-1]
+            subtitle['extension'] = subtitle['name'].split('.')[-1]
 
-        out_file = "%s.chi.%s" % (basename, ext)
-        with open(out_file, 'w') as subfile:
-            subfile.write(subtitle['body'])
+            # Chinese conversion
+            subtitle['body'] = to_unicode(subtitle['body']) # Unicode object
+            conv_func = CHICONV.get(chiconv_type)
+            subtitle['body'] = conv_func(subtitle['body'])
 
-        subs = []
-        checked = check_subtitle_file(out_file)
-        if not checked:
-            checked = try_to_fix_subtitle_file(out_file)
+            if subtitle['extension'] == 'srt':
+                subtitle['body'] = reset_index(subtitle['body'])
 
-        if checked:
-            subs.append(out_file)
-        else:
-            should_throttle = True
-            continue
+            subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
+            subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
 
-        if str(ext).lower() == "ass" and need_srt:
-            srt_filename = convert_ass_to_srt(out_file)
-            if srt_filename is not None:
-                subs.insert(0, srt_filename)
+            basename = os.path.splitext(filename)[0]
 
-        return subs, org
+            ext = subtitle['extension']
+
+            out_file = "%s.chi.%s" % (basename, ext)
+            with open(out_file, 'w') as subfile:
+                subfile.write(subtitle['body'])
+
+            subs = []
+            checked = check_subtitle_file(out_file)
+            if not checked:
+                checked = try_to_fix_subtitle_file(out_file)
+
+            if checked:
+                subs.append(out_file)
+            else:
+                should_throttle = True
+                continue
+
+            if str(ext).lower() == "ass" and need_srt:
+                srt_filename = convert_ass_to_srt(out_file)
+                if srt_filename is not None:
+                    subs.insert(0, srt_filename)
+
+            return subs, org
+        time.sleep(throttle)
     return [], 'OP_ERROR'
