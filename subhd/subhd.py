@@ -44,6 +44,7 @@ def sub_score(sub, name):
     guessed = guessit(name)
     type = guessed.get('type', None)
     require_org = type == 'episode'
+    require_ass = type == 'episode'
     org = sub.get('org', None)
     if org is None and require_org:
         return 0
@@ -51,6 +52,8 @@ def sub_score(sub, name):
         return 0
     features = sub['features']
     for f in required_features:
+        if f == u'ASS' and not require_ass:
+            continue
         if f not in features:
             return 0
     name = os.path.splitext(name)[0]
