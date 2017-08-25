@@ -29,7 +29,7 @@ def combine_file(filename, subs, output, subname=None):
             out_params.append("-metadata:s:s:%d title=chi.%d%s" % (i, i + 1, ext))
         else:
             out_params.append("-metadata:s:s:%d title=chi.%s%s" % (i, subname, ext))
-    out_params.append('-map 0:s?')
+    # out_params.append('-map 0:s?')
     out_params = " ".join(out_params)
 
     inputs_dict = OrderedDict(inputs_dict)

@@ -146,8 +146,8 @@ def get_subtitle(filename, chiconv_type='zht'):
             if subtitle['extension'] == 'srt':
                 subtitle['body'] = reset_index(subtitle['body'])
 
-            # subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
-            # subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
+            subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
+            subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
 
             basename = os.path.splitext(filename)[0]
 
