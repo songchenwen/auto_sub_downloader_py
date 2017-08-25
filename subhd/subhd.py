@@ -5,11 +5,12 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
 from subtitle_utils import convert_ass_to_srt, check_subtitle_file, try_to_fix_subtitle_file
-from args import need_srt, throttle
+from args import need_srt, throttle, ip_change_url
 from core import SubHDDownloader
 from compressor import ZIPFileHandler, RARFileHandler
 from sanitizer import to_unicode, to_chs, to_cht, reset_index, set_utf8_without_bom, get_extra_filename, get_search_names
 from guessit import guessit
+import requests
 import time
 import re
 
@@ -98,11 +99,29 @@ def get_subtitle(filename, chiconv_type='zht'):
                                            target['title'] if target.get('title', None) is not None else 'no title', name))
 
             # Download sub here.
-            datatype, sub_data = DOWNLOADER.download(target.get('id'))
+            datatype = None
+            sub_data = None
+
+            try_times = 1 if ip_change_url is None else 2
+
+            for i in range(try_times):
+                if i > 0:
+                    if ip_change_url is not None:
+                        print('change ip for %s' % name)
+                        try:
+                            requests.get(ip_change_url)
+                        except Exception:
+                            pass
+                        time.sleep(30)
+                datatype, sub_data = DOWNLOADER.download(target.get('id'))
+                if sub_data is not None:
+                    break
+
             if sub_data is None:
                 print('Can not download sub for %s' % name)
                 should_throttle = True
                 continue
+
             file_handler = COMPRESSPR_HANDLER.get(datatype)
             compressor = file_handler(sub_data)
 

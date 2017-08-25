@@ -15,8 +15,10 @@ interval = float(os.environ.get('INTERVAL', 0))
 need_srt = (str(os.environ.get('NEED_SRT', 'true')).lower() == 'true')
 need_aac = (str(os.environ.get('NEED_AAC', 'true')).lower() == 'true')
 old_days = (int(os.environ.get('OLD_DAYS', 0)))
-throttle = int(os.environ.get('THROTTLE', 900))
+throttle = int(os.environ.get('THROTTLE', 60))
 sub_available_delay = int(os.environ.get('SUB_AVAILABLE_DELAY', 0))
+ip_change_url = os.environ.get('IP_CHANGE_URL', None)
+ip_change_url = None if ip_change_url is None else str(ip_change_url)
 
 debug = False
 
