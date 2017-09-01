@@ -16,7 +16,7 @@ def convert_ass_to_srt(ass_filename):
         srt_str = asstosrt.convert(ass_file)
         srt_file.write(srt_str.encode("UTF8"))
     except Exception as e:
-        print(e)
+        print("converting srt error %s" % e.message)
         srt_filename = None
     ass_file.close()
     srt_file.close()

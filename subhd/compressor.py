@@ -5,7 +5,7 @@ This modules handles file decompression / extractions.
 '''
 import rarfile
 import zipfile
-from sanitizer import get_extra_filename
+from sanitizer import get_extra_filename, to_unicode
 import os
 
 class BaseCompressedFileHandler(object):
@@ -65,10 +65,10 @@ class BaseCompressedFileHandler(object):
         '''
         target_name = os.path.splitext(target_name)[0]
         info = self.list_info()
-        high_score_extra_name = [u"简体", u"中文", u"英文", u'chs', u'chi', u'zh', u'zho', u'eng', u'en', u'cht', u'繁体']
+        high_score_extra_name = [u"简体", u"中文", u"英文", u'简英', u'简', u'chs', u'chi', u'zh', u'zho', u'eng', u'en', u'cht', u'繁英', u'繁体']
         max_size = max([i['size'] for i in info])
         def score_for_info(i):
-            name = str(i['name']).lower()
+            name = to_unicode(i['name']).lower()
             basename = os.path.splitext(name)[0]
             ext = os.path.splitext(name)[1]
             score = 0.0
