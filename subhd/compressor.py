@@ -68,7 +68,12 @@ class BaseCompressedFileHandler(object):
         high_score_extra_name = [u"简体", u"中文", u"英文", u'简英', u'简', u'chs', u'chi', u'zh', u'zho', u'eng', u'en', u'cht', u'繁英', u'繁体']
         max_size = max([i['size'] for i in info])
         def score_for_info(i):
-            name = to_unicode(i['name']).lower()
+            name = str(i['name'])
+            try:
+                name = to_unicode(i['name'])
+            except Exception:
+                pass
+            name = name.lower()
             basename = os.path.splitext(name)[0]
             ext = os.path.splitext(name)[1]
             score = 0.0
