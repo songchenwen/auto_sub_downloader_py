@@ -26,7 +26,7 @@ CHICONV = {
 
 DOWNLOADER = SubHDDownloader()
 
-known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'衣柜字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组', u'TLF字幕组']
+known_orgs = [u'YYeTs字幕组', u'伊甸园字幕组', u'深影字幕组', u'衣柜字幕组', u'F.I.X字幕侠', u'ZiMuZu字幕组', u'Orange字幕组', u'风软字幕组']
 required_features = [u'双语', u'ASS']
 
 
