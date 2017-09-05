@@ -174,12 +174,13 @@ def reset_index(sub_unicode):
     return new_sub_unicode
 
 
-name_seperator_re = '\.|\s|-|[|]|/'
+name_seperator_re = '\.|\s|-|[|]|/|(web-dl)|(web-rip)|(h\.264)|(h\.265)|(\w*\d.1)'
 
 
 def get_extra_filename(target_name, filename):
     name = target_name.lower()
     components = re.split(name_seperator_re, name)
+    components = [c for c in components if c is not None and len(c) > 0]
     filename = filename.lower()
     extra_filename = filename
 
@@ -235,7 +236,6 @@ def get_extra_filename(target_name, filename):
     plus_extra_name = ""
     for component in components:
         if component not in filename:
-            print component
             replace_methods = [replace_encoding, plus_extra_for_resolution, replace_format]
             p = None
             for replace_method in replace_methods:
