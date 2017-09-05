@@ -198,18 +198,53 @@ def get_extra_filename(target_name, filename):
             return ex
         return None
 
+    def replace_format(c, f):
+        formats = {'webrip': ['web-rip', 'web-dl', 'webdl'],
+                   'web-rip': ['webrip', 'web-dl', 'webdl'],
+                   'web-dl': ['webdl', 'webrip'],
+                   'webdl': ['web-dl', 'webrip']}
+        c = str(c).lower()
+        f = str(f).lower()
+        extra_per_level = 'f'
+        if c in formats.keys():
+            ex = ''
+            values = formats.get(c)
+            for i in range(len(values)):
+                if values[i] not in f:
+                    ex += extra_per_level
+                else:
+                    return ex
+        return None
+
+    def replace_encoding(c, f):
+        encodings = {'h264': ['h.264', 'x264'],
+                     'h265': ['h.265', 'x265'],
+                     'h.264': ['h264', 'x264'],
+                     'h.256': ['h265', 'x265'],
+                     'x264': ['h264', 'h.264'],
+                     'x265': ['h265', 'h.265']}
+        c = str(c).lower()
+        f = str(f).lower()
+        if c in encodings.keys():
+            values = encodings.get(c)
+            for value in values:
+                if value in f:
+                    return ""
+        return None
+
     plus_extra_name = ""
     for component in components:
         if component not in filename:
-            if component == 'h264':
-                component = 'h.264'
-            elif component == 'h265':
-                component = 'h.265'
-            if component not in filename:
-                p = plus_extra_for_resolution(component, filename)
-                if p is None:
-                    return None
-                plus_extra_name += p
+            print component
+            replace_methods = [replace_encoding, plus_extra_for_resolution, replace_format]
+            p = None
+            for replace_method in replace_methods:
+                p = replace_method(component, filename)
+                if p is not None:
+                    plus_extra_name += p
+                    break
+            if p is None:
+                return None
         extra_filename = extra_filename.replace(component, '', 1)
     extra_filename = re.sub(name_seperator_re, '', extra_filename)
     return extra_filename + plus_extra_name
@@ -218,16 +253,26 @@ def get_extra_filename(target_name, filename):
 def get_search_names(name):
     name = os.path.splitext(name)[0]
     search_names = [name]
-    map_names = {'h264': 'h.264',
-                 'h265': 'h.265',
-                 'h.264': 'h264',
-                 'h.256': 'h265',
+    map_names = {'h264': ['h.264', 'x264'],
+                 'h265': ['h.265', 'x265'],
+                 'h.264': ['h264', 'x264'],
+                 'h.256': ['h265', 'x265'],
+                 'x264': ['h264', 'h.264'],
+                 'x265': ['h265', 'h.265'],
                  '2160p': '',
                  '1080p': '',
-                 '720p': ''}
+                 '720p': '',
+                 'webrip': ['web-rip', 'web-dl', 'webdl'],
+                 'web-rip': ['webrip', 'web-dl', 'webdl'],
+                 'web-dl': ['webdl', 'webrip'],
+                 'webdl': ['web-dl', 'webrip']}
     for ori in map_names.keys():
         new = map_names.get(ori)
         if ori in name.lower():
-            search_names.append(name.lower().replace(ori, new))
+            if isinstance(new, list):
+                for item in new:
+                    search_names.append(name.lower().replace(ori, item))
+            else:
+                search_names.append(name.lower().replace(ori, new))
     return search_names
 
