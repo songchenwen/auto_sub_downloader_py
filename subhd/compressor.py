@@ -63,7 +63,8 @@ class BaseCompressedFileHandler(object):
         Returns:
             raw_sub: the string data of the subtitle.
         '''
-        target_name = os.path.splitext(target_name)[0]
+        if target_name is not None:
+            target_name = os.path.splitext(target_name)[0]
         info = self.list_info()
         high_score_extra_name = [u"简体", u"中文", u"英文", u'简英', u'简', u'chs', u'chi', u'zh', u'zho', u'eng', u'en', u'cht', u'繁英', u'繁体']
         max_size = max([i['size'] for i in info])
@@ -83,15 +84,17 @@ class BaseCompressedFileHandler(object):
                 score += 0.0
             else:
                 return -1
-            extra_filename = get_extra_filename(target_name, basename)
-            if extra_filename is None:
-                return -1
-            extra_filename.replace('&', '')
-            for ind in range(len(high_score_extra_name)):
-                n = high_score_extra_name[ind]
-                if n in extra_filename:
-                    score += (len(high_score_extra_name) - ind)
-                    extra_filename.replace(n, '', 1)
+            extra_filename = ''
+            if target_name is not None:
+                extra_filename = get_extra_filename(target_name, basename)
+                if extra_filename is None:
+                    return -1
+                extra_filename.replace('&', '')
+                for ind in range(len(high_score_extra_name)):
+                    n = high_score_extra_name[ind]
+                    if n in extra_filename:
+                        score += (len(high_score_extra_name) - ind)
+                        extra_filename.replace(n, '', 1)
             score += (float(100 - min(100, len(extra_filename))) / 100.0 * 10.0)
             score += (float(i['size']) / float(max_size) * 10.0)
             return score
@@ -99,7 +102,7 @@ class BaseCompressedFileHandler(object):
         candidate = max(info, key=lambda x: score_for_info(x))
         if score_for_info(candidate) < 0:
             return None, None
-        print('best uncompress guess %s for %s' % (candidate['name'], target_name))
+        print('best uncompress guess %s for %s' % (candidate['name'], target_name if target_name is not None else 'None'))
         return candidate['name'], self.extract(candidate['name'])
 
 class RARFileHandler(BaseCompressedFileHandler):

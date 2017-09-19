@@ -76,103 +76,109 @@ def get_subtitle(filename, chiconv_type='zht'):
         sys.exit(1)
     name = os.path.basename(filename)
     print('processing %s' % name)
+    should_guess_compress_filename = True
+    while True:
+        for search_name in get_search_names(name):
+            print('searching for %s' % search_name)
+            results = DOWNLOADER.search(search_name)
+            if not results:
+                print "No subtitle for %s" % name
+                continue
+            targets = choose_subtitle(results, name)
 
-    for search_name in get_search_names(name):
-        print('searching for %s' % search_name)
-        results = DOWNLOADER.search(search_name)
-        if not results:
-            print "No subtitle for %s" % name
-            continue
-        targets = choose_subtitle(results, name)
-
-        if len(targets) == 0:
-            print "Score low sub for %s" % name
-            continue
-
-        should_throttle = False
-        for target in targets:
-            if should_throttle:
-                time.sleep(throttle)
-
-            org = target.get('org', None)
-            if org is not None:
-                org = unicode(org)
-
-            print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
-                                           target['title'] if target.get('title', None) is not None else 'no title', name))
-
-            # Download sub here.
-            datatype = None
-            sub_data = None
-
-            try_times = 1 if ip_change_url is None else 2
-
-            for i in range(try_times):
-                if i > 0:
-                    if ip_change_url is not None:
-                        print('change ip for %s' % name)
-                        try:
-                            requests.get(ip_change_url)
-                        except Exception:
-                            pass
-                        time.sleep(30)
-                datatype, sub_data = DOWNLOADER.download(target.get('id'))
-                if sub_data is not None:
-                    break
-
-            if sub_data is None:
-                print('Can not download sub for %s' % name)
-                should_throttle = True
+            if len(targets) == 0:
+                print "Score low sub for %s" % name
                 continue
 
-            file_handler = COMPRESSPR_HANDLER.get(datatype)
-            compressor = file_handler(sub_data)
+            should_throttle = False
+            for target in targets:
+                if should_throttle:
+                    time.sleep(throttle)
 
-            subtitle = {}
-            subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name)
-            if subtitle['name'] is None:
-                print('no suitable file to uncompress %s' % name)
-                should_throttle = True
-                continue
+                org = target.get('org', None)
+                if org is not None:
+                    org = unicode(org)
 
-            subtitle['name'] = './' + subtitle['name'].split('/')[-1]
-            subtitle['extension'] = subtitle['name'].split('.')[-1]
+                print('%s %s %s sub for %s' % (org if org is not None else "no org", ','.join(target['features']),
+                                               target['title'] if target.get('title', None) is not None else 'no title', name))
 
-            # Chinese conversion
-            subtitle['body'] = to_unicode(subtitle['body']) # Unicode object
-            conv_func = CHICONV.get(chiconv_type)
-            subtitle['body'] = conv_func(subtitle['body'])
+                # Download sub here.
+                datatype = None
+                sub_data = None
 
-            if subtitle['extension'] == 'srt':
-                subtitle['body'] = reset_index(subtitle['body'])
+                try_times = 1 if ip_change_url is None else 2
 
-            subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
-            subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
+                for i in range(try_times):
+                    if i > 0:
+                        if ip_change_url is not None:
+                            print('change ip for %s' % name)
+                            try:
+                                requests.get(ip_change_url)
+                            except Exception:
+                                pass
+                            time.sleep(30)
+                    datatype, sub_data = DOWNLOADER.download(target.get('id'))
+                    if sub_data is not None:
+                        break
 
-            basename = os.path.splitext(filename)[0]
+                if sub_data is None:
+                    print('Can not download sub for %s' % name)
+                    should_throttle = True
+                    continue
 
-            ext = subtitle['extension']
+                file_handler = COMPRESSPR_HANDLER.get(datatype)
+                compressor = file_handler(sub_data)
 
-            out_file = "%s.chi.%s" % (basename, ext)
-            with open(out_file, 'w') as subfile:
-                subfile.write(subtitle['body'])
+                subtitle = {}
+                subtitle['name'], subtitle['body'] = compressor.extract_bestguess(name if should_guess_compress_filename else None)
+                if subtitle['name'] is None:
+                    print('no suitable file to uncompress %s' % name)
+                    should_throttle = True
+                    continue
 
-            subs = []
-            checked = check_subtitle_file(out_file)
-            if not checked:
-                checked = try_to_fix_subtitle_file(out_file)
+                subtitle['name'] = './' + subtitle['name'].split('/')[-1]
+                subtitle['extension'] = subtitle['name'].split('.')[-1]
 
-            if checked:
-                subs.append(out_file)
-            else:
-                should_throttle = True
-                continue
+                # Chinese conversion
+                subtitle['body'] = to_unicode(subtitle['body']) # Unicode object
+                conv_func = CHICONV.get(chiconv_type)
+                subtitle['body'] = conv_func(subtitle['body'])
 
-            if str(ext).lower() == "ass" and need_srt:
-                srt_filename = convert_ass_to_srt(out_file)
-                if srt_filename is not None:
-                    subs.insert(0, srt_filename)
+                if subtitle['extension'] == 'srt':
+                    subtitle['body'] = reset_index(subtitle['body'])
 
-            return subs, org
-        time.sleep(throttle)
+                subtitle['body'] = set_utf8_without_bom(subtitle['body']) # Plain string
+                subtitle['body'] = subtitle['body'].replace('\r\n', '\n') # Unix-style line endings
+
+                basename = os.path.splitext(filename)[0]
+
+                ext = subtitle['extension']
+
+                out_file = "%s.chi.%s" % (basename, ext)
+                with open(out_file, 'w') as subfile:
+                    subfile.write(subtitle['body'])
+
+                subs = []
+                checked = check_subtitle_file(out_file)
+                if not checked:
+                    checked = try_to_fix_subtitle_file(out_file)
+
+                if checked:
+                    subs.append(out_file)
+                else:
+                    should_throttle = True
+                    continue
+
+                if str(ext).lower() == "ass" and need_srt:
+                    srt_filename = convert_ass_to_srt(out_file)
+                    if srt_filename is not None:
+                        subs.insert(0, srt_filename)
+
+                return subs, org
+            time.sleep(throttle)
+        if not should_guess_compress_filename:
+            break
+        else:
+            should_guess_compress_filename = False
+            print('give up guess compress filename for %s' % name)
     return [], 'OP_ERROR'
