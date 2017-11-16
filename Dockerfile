@@ -24,7 +24,7 @@ ENV INTERVAL=3600
 ENV NEED_SRT=True
 ENV NEED_AAC=True
 
-ENV UMASK 0000
+ENV UMASK=0000
 
 RUN echo "umask ${UMASK}" >> /etc/profile
 RUN umask ${UMASK}
